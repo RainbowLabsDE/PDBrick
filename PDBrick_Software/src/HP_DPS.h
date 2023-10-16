@@ -53,6 +53,8 @@ class DPS {
         FAN_RPM = 0x40,
     };
 
+
+    // Checksum calculation used by the DPS (simple addition)
     uint8_t _calcChecksum(uint8_t *data, size_t size) {
         uint8_t checksum = 0;
         checksum -= _addr << 1;
@@ -63,6 +65,7 @@ class DPS {
     }
 
 
+    // Read from DPS register
     uint16_t _read(uint8_t reg) {
         // uint8_t checksum = (0xFF - ((_addr << 1) + reg) + 1) & 0xFF;
         Wire.beginTransmission(_addr);
@@ -81,6 +84,7 @@ class DPS {
     }
 
 
+    // Write to DPS register
     void _write(uint8_t reg, uint16_t val) {
         uint8_t msg[] = {reg, val & 0xFF, val >> 8};
 
@@ -91,7 +95,7 @@ class DPS {
     }
 
 
-
+    // Get all important values
     dpsValues_t getValues() {
         dpsValues_t vals = {0};
         // float vals[dpsValues_len] = {0};
@@ -111,7 +115,7 @@ class DPS {
         return vals;
     }
 
-
+    // Set minimum fan speed
     void setFanSpeed(uint16_t rpm) {
         printf("Setting RPM to %5d\n", rpm);
         _write((uint8_t)WriteRegs::FAN_RPM, rpm);

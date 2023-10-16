@@ -49,13 +49,25 @@ class DPS {
     };
     static const int dpsRegisters_len = sizeof(dpsRegisters) / sizeof(dpsRegisters[0]);
 
+    enum class WriteRegs : uint8_t {
+        FAN_RPM = 0x40,
+    };
+
+    uint8_t _calcChecksum(uint8_t *data, size_t size) {
+        uint8_t checksum = 0;
+        checksum -= _addr << 1;
+        for (int i = 0; i < size; i++) {
+            checksum -= data[i];
+        }
+        return checksum;
+    }
+
 
     uint16_t _read(uint8_t reg) {
-        uint8_t checksum = (0xFF - ((_addr << 1) + reg) + 1) & 0xFF;
-
+        // uint8_t checksum = (0xFF - ((_addr << 1) + reg) + 1) & 0xFF;
         Wire.beginTransmission(_addr);
         Wire.write(reg);
-        Wire.write(checksum);
+        Wire.write(_calcChecksum(&reg, 1));
         Wire.endTransmission();
         // printf("> %02X %02X %02X\n", _addr, reg, checksum);
 
@@ -67,6 +79,17 @@ class DPS {
         // printf("< %02X %02X %02X\n", msg[0], msg[1], msg[2]);
         return (msg[1] << 8) | msg[0];
     }
+
+
+    void _write(uint8_t reg, uint16_t val) {
+        uint8_t msg[] = {reg, val & 0xFF, val >> 8};
+
+        Wire.beginTransmission(_addr);
+        Wire.write(msg, sizeof(msg));
+        Wire.write(_calcChecksum(msg, sizeof(msg)));
+        Wire.endTransmission();
+    }
+
 
 
     dpsValues_t getValues() {
@@ -90,7 +113,9 @@ class DPS {
 
 
     void setFanSpeed(uint16_t rpm) {
-        // printf("Setting RPM to %5d\n", rpm);
+        printf("Setting RPM to %5d\n", rpm);
+        _write((uint8_t)WriteRegs::FAN_RPM, rpm);
+        
     }
 
 

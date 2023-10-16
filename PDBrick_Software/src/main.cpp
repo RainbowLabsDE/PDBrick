@@ -142,12 +142,12 @@ void loop() {
     while (Serial.available()) {
         switch(Serial.read()) {
             case 'w': {
-                rpm += 100;
+                rpm += 250;
                 psu.setFanSpeed(rpm);
             }
             break;
             case 's': {
-                rpm -= 100;
+                rpm -= 250;
                 if (rpm < 1000) {
                     rpm = 1000;
                 }
